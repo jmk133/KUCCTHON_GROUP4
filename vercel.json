@@ -6,6 +6,8 @@
     { "source": "/community/:path*", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/community/:path*" },
     { "source": "/quiz/:path*", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/quiz/:path*" },
     { "source": "/health", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/health" },
+    { "source": "/voice-brain", "destination": "https://789e-203-251-135-23.ngrok-free.app/voice-brain" },
+    { "source": "/voice-brain/status", "destination": "https://789e-203-251-135-23.ngrok-free.app/voice-brain/status" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
