@@ -188,8 +188,7 @@ export async function addComment(postId: string, nickname: string, content: stri
  * AI 서버 주소가 바뀌면 VOICE_BRAIN_URL만 고치세요.
  * 계산이 수십 초 걸리므로 Vercel 프록시를 거치지 않고 브라우저에서 바로 호출합니다.
  */
-export const VOICE_BRAIN_URL =
-  import.meta.env.VITE_VOICE_BRAIN_URL ?? "https://789e-203-251-135-23.ngrok-free.app";
+export const VOICE_BRAIN_URL = import.meta.env.VITE_VOICE_BRAIN_URL ?? "";
 
 export interface BrainRegion {
   key: string;
