@@ -18,7 +18,7 @@ export const HERO_PHRASES: { region: RegionId; text: string }[] = [
  * 지역은 마지막 결과에서만 공개합니다.
  * 실제 녹음 파일을 public/audio/worldcup/ 에 넣으면 그 파일을 재생하고,
  * 파일이 없으면 기기의 합성음으로 문장을 읽어 줍니다.
- * 각 지역이 정확히 2번씩 나오도록 짝을 맞췄습니다.
+  * 6개 지역의 모든 짝(15쌍)을 한 번씩 비교합니다. 각 지역은 5번씩 나옵니다.
  */
 export interface VoiceOption {
   region: RegionId;
@@ -76,7 +76,81 @@ export const WORLDCUP_QUESTIONS: WorldcupQuestion[] = [
       { region: "jeju", text: "괜찮수다, 천천히 헙서.", audio: a("q6", "jeju") },
     ],
   },
+  {
+    id: "q7", standard: "왜 이렇게 늦었어?",
+    options: [
+      { region: "gyeongsang", text: "와 이리 늦었노?", audio: a("q7", "gyeongsang") },
+      { region: "gangwon", text: "왜 이래 늦었드래요?", audio: a("q7", "gangwon") },
+    ],
+  },
+  {
+    id: "q8", standard: "정말 고마워.",
+    options: [
+      { region: "jeolla", text: "참말로 고맙당께.", audio: a("q8", "jeolla") },
+      { region: "jeju", text: "정말 고맙수다.", audio: a("q8", "jeju") },
+    ],
+  },
+  {
+    id: "q9", standard: "얼른 와.",
+    options: [
+      { region: "chungcheong", text: "얼른 와유.", audio: a("q9", "chungcheong") },
+      { region: "seoul", text: "얼른 와.", audio: a("q9", "seoul") },
+    ],
+  },
+  {
+    id: "q10", standard: "밥 먹고 가.",
+    options: [
+      { region: "gyeongsang", text: "밥 묵고 가라.", audio: a("q10", "gyeongsang") },
+      { region: "seoul", text: "밥 먹고 가.", audio: a("q10", "seoul") },
+    ],
+  },
+  {
+    id: "q11", standard: "뭐 하고 계세요?",
+    options: [
+      { region: "gyeongsang", text: "뭐 하십니꺼?", audio: a("q11", "gyeongsang") },
+      { region: "jeju", text: "뭐 햄수꽈?", audio: a("q11", "jeju") },
+    ],
+  },
+  {
+    id: "q12", standard: "그러니까 말이야.",
+    options: [
+      { region: "jeolla", text: "긍께 말이여.", audio: a("q12", "jeolla") },
+      { region: "chungcheong", text: "그러니께 말여.", audio: a("q12", "chungcheong") },
+    ],
+  },
+  {
+    id: "q13", standard: "많이 먹어.",
+    options: [
+      { region: "jeolla", text: "많이 묵어잉.", audio: a("q13", "jeolla") },
+      { region: "gangwon", text: "마이 먹어.", audio: a("q13", "gangwon") },
+    ],
+  },
+  {
+    id: "q14", standard: "어디 가세요?",
+    options: [
+      { region: "chungcheong", text: "어디 가셔유?", audio: a("q14", "chungcheong") },
+      { region: "jeju", text: "어디 감수꽈?", audio: a("q14", "jeju") },
+    ],
+  },
+  {
+    id: "q15", standard: "이거 얼마예요?",
+    options: [
+      { region: "gangwon", text: "이거 얼마래요?", audio: a("q15", "gangwon") },
+      { region: "seoul", text: "이거 얼마예요?", audio: a("q15", "seoul") },
+    ],
+  },
 ];
+
+// 동점일 때 결승전용 문장 (표준어: "우리 같이 가자.")
+export const PLAYOFF_STANDARD = "우리 같이 가자.";
+export const PLAYOFF_LINES: Record<RegionId, VoiceOption> = {
+  gyeongsang: { region: "gyeongsang", text: "우리 같이 가재이.", audio: a("final", "gyeongsang") },
+  jeolla: { region: "jeolla", text: "우리 같이 가장께.", audio: a("final", "jeolla") },
+  chungcheong: { region: "chungcheong", text: "우리 같이 가유.", audio: a("final", "chungcheong") },
+  gangwon: { region: "gangwon", text: "우리 같이 가드래요.", audio: a("final", "gangwon") },
+  jeju: { region: "jeju", text: "우리 혼디 가게마씸.", audio: a("final", "jeju") },
+  seoul: { region: "seoul", text: "우리 같이 가자.", audio: a("final", "seoul") },
+};
 
 /* ---------------- 사투리 콘테스트 ---------------- */
 export const CONTEST_SENTENCE = "오늘 밥은 먹었어? 시간 되면 우리 같이 밥 먹자.";

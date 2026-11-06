@@ -2,32 +2,63 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { REGIONS, regionById } from "../constants/regions";
 import type { RegionId } from "../constants/regions";
-import { WORLDCUP_QUESTIONS } from "../data/content";
+import { PLAYOFF_LINES, PLAYOFF_STANDARD, WORLDCUP_QUESTIONS } from "../data/content";
 import type { VoiceOption } from "../data/content";
 import { playVoice, stopVoice } from "../lib/voice";
 import { CONTEST_THRESHOLD, saveEligibility } from "../lib/eligibility";
 
-type Stage = "intro" | "play" | "result";
+type Stage = "intro" | "play" | "playoff" | "result";
 
-// 질문마다 1번·2번 순서를 섞어서 지역을 짐작하지 못하게 합니다
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+// 문제 순서와 1번·2번 순서를 섞어서 지역을 짐작하지 못하게 합니다
 const shuffled = () =>
-  WORLDCUP_QUESTIONS.map((q) => ({
+  shuffle(WORLDCUP_QUESTIONS).map((q) => ({
     ...q,
     options: (Math.random() < 0.5 ? [...q.options] : [q.options[1], q.options[0]]) as [VoiceOption, VoiceOption],
   }));
+
+// 지역별 점수 = 그 지역 목소리를 고른 횟수 / 그 지역 목소리가 나온 횟수
+function computeScores(questions: ReturnType<typeof shuffled>, picks: VoiceOption[]) {
+  const appear: Record<string, number> = {};
+  const chosen: Record<string, number> = {};
+  questions.forEach((q) => q.options.forEach((o) => (appear[o.region] = (appear[o.region] ?? 0) + 1)));
+  picks.forEach((p) => (chosen[p.region] = (chosen[p.region] ?? 0) + 1));
+  return REGIONS.map((r) => ({
+    region: r,
+    score: appear[r.id] ? (chosen[r.id] ?? 0) / appear[r.id] : 0,
+    count: chosen[r.id] ?? 0,
+    appear: appear[r.id] ?? 0,
+  })).sort((a, b) => b.score - a.score);
+}
 
 export default function Worldcup() {
   const [stage, setStage] = useState<Stage>("intro");
   const [questions, setQuestions] = useState(shuffled);
   const [idx, setIdx] = useState(0);
   const [picks, setPicks] = useState<VoiceOption[]>([]);
+  const [contenders, setContenders] = useState<RegionId[]>([]); // 동점 결승 후보
+  const [champion, setChampion] = useState<RegionId | null>(null);
+  const [wentPlayoff, setWentPlayoff] = useState(false);
   const [playing, setPlaying] = useState<number | null>(null);
   const [heard, setHeard] = useState<[boolean, boolean]>([false, false]);
   const [usedTts, setUsedTts] = useState(false);
 
   useEffect(() => () => stopVoice(), []);
 
-  const q = questions[idx];
+  const scores = useMemo(() => computeScores(questions, picks), [questions, picks]);
+
+  // 결승전 보기 순서 (다시 그려져도 바뀌지 않도록 상태로 고정)
+  const [playoffOrder, setPlayoffOrder] = useState<[VoiceOption, VoiceOption] | null>(null);
+  // 지금 화면에 보여 줄 문제 (본선 또는 결승전)
+  const q = stage === "playoff" && playoffOrder ? { standard: PLAYOFF_STANDARD, options: playoffOrder } : questions[idx];
 
   const listen = async (n: 0 | 1) => {
     setPlaying(n);
@@ -37,13 +68,58 @@ export default function Worldcup() {
     setPlaying(null);
   };
 
+  const startPlayoff = (tied: RegionId[]) => {
+    const order = shuffle(tied);
+    setContenders(order);
+    setPlayoffOrder(
+      (Math.random() < 0.5
+        ? [PLAYOFF_LINES[order[0]], PLAYOFF_LINES[order[1]]]
+        : [PLAYOFF_LINES[order[1]], PLAYOFF_LINES[order[0]]]) as [VoiceOption, VoiceOption]
+    );
+    setWentPlayoff(true);
+    setStage("playoff");
+  };
+
   const choose = (n: 0 | 1) => {
     stopVoice();
-    const next = [...picks, q.options[n]];
-    setPicks(next);
     setHeard([false, false]);
-    if (idx + 1 < questions.length) setIdx(idx + 1);
-    else setStage("result");
+    const picked = q.options[n];
+
+    // 결승전: 진 지역을 빼고 다음 후보와 다시 대결
+    if (stage === "playoff") {
+      const loser = q.options[n === 0 ? 1 : 0].region;
+      const rest = contenders.filter((r) => r !== loser);
+      if (rest.length === 1) {
+        setChampion(rest[0]);
+        setStage("result");
+      } else {
+        // 이긴 지역 vs 다음 후보
+        const next: RegionId[] = [picked.region, ...rest.filter((r) => r !== picked.region)];
+        setContenders(next);
+        setPlayoffOrder(
+          (Math.random() < 0.5
+            ? [PLAYOFF_LINES[next[0]], PLAYOFF_LINES[next[1]]]
+            : [PLAYOFF_LINES[next[1]], PLAYOFF_LINES[next[0]]]) as [VoiceOption, VoiceOption]
+        );
+      }
+      return;
+    }
+
+    // 본선
+    const nextPicks = [...picks, picked];
+    setPicks(nextPicks);
+    if (idx + 1 < questions.length) {
+      setIdx(idx + 1);
+      return;
+    }
+    const final = computeScores(questions, nextPicks);
+    const best = final[0].score;
+    const tied = final.filter((s) => s.score === best).map((s) => s.region.id);
+    if (tied.length > 1) startPlayoff(tied);
+    else {
+      setChampion(tied[0]);
+      setStage("result");
+    }
   };
 
   const restart = () => {
@@ -51,29 +127,24 @@ export default function Worldcup() {
     setQuestions(shuffled());
     setIdx(0);
     setPicks([]);
+    setContenders([]);
+    setPlayoffOrder(null);
+    setChampion(null);
+    setWentPlayoff(false);
     setHeard([false, false]);
     setStage("play");
   };
 
-  // 지역별 점수 = 그 지역 목소리를 고른 횟수 / 그 지역 목소리가 나온 횟수
-  const scores = useMemo(() => {
-    const appear: Record<string, number> = {};
-    const chosen: Record<string, number> = {};
-    questions.forEach((qq) => qq.options.forEach((o) => (appear[o.region] = (appear[o.region] ?? 0) + 1)));
-    picks.forEach((p) => (chosen[p.region] = (chosen[p.region] ?? 0) + 1));
-    return REGIONS.map((r) => ({
-      region: r,
-      score: appear[r.id] ? (chosen[r.id] ?? 0) / appear[r.id] : 0,
-      count: chosen[r.id] ?? 0,
-    })).sort((a, b) => b.score - a.score || b.count - a.count);
-  }, [questions, picks]);
-
-  const top = scores[0];
+  const top = scores.find((s) => s.region.id === champion) ?? scores[0];
   const eligible = stage === "result" && top.score >= CONTEST_THRESHOLD;
 
   useEffect(() => {
     if (eligible) saveEligibility({ region: top.region.id as RegionId, score: top.score, source: "worldcup" });
   }, [eligible, top]);
+
+  // 결과 막대: 우승 지역을 맨 위로
+  const ordered = [top, ...scores.filter((s) => s.region.id !== top.region.id)];
+  const total = questions.length;
 
   return (
     <section className="section page">
@@ -85,21 +156,29 @@ export default function Worldcup() {
         {stage === "intro" && (
           <div className="panel center-panel">
             <p className="big-q">🎧 소리만 듣고 고르기</p>
-            <p className="sub">총 {questions.length}문제 · 1분이면 끝나요. 소리를 켜 주세요.</p>
+            <p className="sub">총 {total}문제 · 3분이면 끝나요. 소리를 켜 주세요.</p>
             <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => setStage("play")}>
               월드컵 시작하기
             </button>
           </div>
         )}
 
-        {stage === "play" && (
+        {(stage === "play" || stage === "playoff") && (
           <div className="wc">
-            <div className="progress">
-              <div className="progress-fill" style={{ width: `${(idx / questions.length) * 100}%` }} />
-            </div>
-            <p className="note" style={{ textAlign: "center", marginTop: 10 }}>
-              {idx + 1} / {questions.length}
-            </p>
+            {stage === "play" ? (
+              <>
+                <div className="progress">
+                  <div className="progress-fill" style={{ width: `${(idx / total) * 100}%` }} />
+                </div>
+                <p className="note" style={{ textAlign: "center", marginTop: 10 }}>
+                  {idx + 1} / {total}
+                </p>
+              </>
+            ) : (
+              <div className="playoff-banner">
+                🔥 동점 결승전! 비슷하게 고른 말투가 {contenders.length}개 있어요. 한 번 더 골라 주세요.
+              </div>
+            )}
 
             <div className="standard">
               <span className="note">이 문장을 들어 보세요</span>
@@ -132,11 +211,13 @@ export default function Worldcup() {
               당신은 <em style={{ color: top.region.color }}>{top.region.name}</em> 지역 사람일 가능성이 높아요.
             </p>
             <p className="sub">
-              {top.region.name} 말투를 {Math.round(top.score * 100)}% 골랐어요.
+              {top.region.name} 말투가 나온 {top.appear}번 중 {top.count}번을 골랐어요
+              ({Math.round(top.score * 100)}%).
+              {wentPlayoff && " 동점이라 결승전에서 고른 말투로 정했어요."}
             </p>
 
             <div className="bars">
-              {scores.map((s) => {
+              {ordered.map((s) => {
                 const pct = Math.round(s.score * 100);
                 const isTop = s.region.id === top.region.id;
                 return (
@@ -179,7 +260,7 @@ export default function Worldcup() {
               </div>
             ) : (
               <p className="demo-note" style={{ marginTop: 16 }}>
-                한 지역을 80% 이상 고르면 사투리 콘테스트에 참여할 수 있어요.
+                한 지역 말투를 80% 이상(5번 중 4번 이상) 고르면 사투리 콘테스트에 참여할 수 있어요.
               </p>
             )}
 
