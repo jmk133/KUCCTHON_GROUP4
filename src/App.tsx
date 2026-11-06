@@ -1,24 +1,32 @@
-import { Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import Dna from "./pages/Dna";
-import Worldcup from "./pages/Worldcup";
-import Board from "./pages/Board";
+import Header from "./components/Header";
+import Hero from "./sections/Hero";
+import Explore from "./sections/Explore";
+import Analysis from "./sections/Analysis";
+import Worldcup from "./sections/Worldcup";
+import Contest from "./sections/Contest";
+import Archive from "./sections/Archive";
 
 export default function App() {
   return (
-    <div>
-      <nav style={{ display: "flex", gap: 16, padding: 16 }}>
-        <Link to="/">홈</Link>
-        <Link to="/dna">사투리 DNA</Link>
-        <Link to="/worldcup">월드컵</Link>
-        <Link to="/board">게시판</Link>
-      </nav>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dna" element={<Dna />} />
-        <Route path="/worldcup" element={<Worldcup />} />
-        <Route path="/board" element={<Board />} />
-      </Routes>
-    </div>
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <Explore />
+        <Analysis />
+        <Worldcup />
+        <Contest />
+        <Archive />
+      </main>
+      <footer className="footer">
+        <div className="wrap">
+          <a href="#home" className="logo">
+            사투리 <b>DNA</b>
+          </a>
+          <span>서로 다른 말이 모여, 더 다채로운 우리.</span>
+          <span>KUCCTHON 4조 · 프로토타입</span>
+        </div>
+      </footer>
+    </>
   );
 }
