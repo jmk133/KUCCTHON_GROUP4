@@ -6,7 +6,7 @@ import type { AnalyzeResult } from "../api/client";
 import { useRecorder, MAX_SECONDS } from "../hooks/useRecorder";
 import { CONTEST_THRESHOLD, saveEligibility } from "../lib/eligibility";
 
-const SENTENCES = ["오늘 저녁에 뭐 먹을까?", "나는 따뜻한 국밥이 먹고 싶어.", "밥 먹고 우리 같이 산책하러 갈래?"];
+const SENTENCES = ["안녕하세요. 내일 회의 시간이 오후 세 시로 바뀌었어요.", "장소는 2층 작은 회의실이고요, 각자 노트북을 꼭 챙겨 오세요. 자료는 오늘 저녁까지 단체방에 올려 주시면 됩니다.", "늦으시는 분은 미리 연락 주세요. 그럼 내일 뵙겠습니다."];
 
 const COMMENT: Record<string, string> = {
   gyeongsang: "다정한 안부를 툭 건네는 말투가 매력적이네요.",
