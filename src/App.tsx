@@ -6,6 +6,7 @@ import Analysis from "./pages/Analysis";
 import Worldcup from "./pages/Worldcup";
 import Contest from "./pages/Contest";
 import Archive from "./pages/Archive";
+import Brain from "./pages/Brain";
 
 // 페이지가 바뀌면 맨 위로 이동
 function ScrollToTop() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/worldcup" element={<Worldcup />} />
           <Route path="/contest" element={<Contest />} />
           <Route path="/archive" element={<Archive />} />
+          <Route path="/brain" element={<Brain />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>

@@ -6,6 +6,7 @@ const LINKS = [
   { to: "/worldcup", label: "사투리 월드컵" },
   { to: "/contest", label: "사투리 콘테스트" },
   { to: "/archive", label: "말의 기록" },
+  { to: "/brain", label: "f-MRI" },
 ];
 
 export default function Header() {

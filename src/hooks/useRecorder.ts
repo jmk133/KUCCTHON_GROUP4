@@ -9,7 +9,7 @@ export const MAX_SECONDS = 20;
  *   (2) 녹음마다 번호를 붙여 이전 녹음의 늦은 콜백을 무시하며
  *   (3) 경과 시간은 시작 시각 기준으로 계산합니다.
  */
-export function useRecorder() {
+export function useRecorder(maxSeconds: number = MAX_SECONDS) {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -95,9 +95,9 @@ export function useRecorder() {
 
       const startedAt = Date.now();
       timerRef.current = window.setInterval(() => {
-        const s = Math.min(MAX_SECONDS, Math.floor((Date.now() - startedAt) / 1000));
+        const s = Math.min(maxSeconds, Math.floor((Date.now() - startedAt) / 1000));
         setSeconds(s);
-        if (s >= MAX_SECONDS) stop();
+        if (s >= maxSeconds) stop();
       }, 250);
     } catch {
       setError("마이크를 사용할 수 없어요. 브라우저에서 마이크 권한을 허용해 주세요.");
@@ -105,7 +105,7 @@ export function useRecorder() {
     } finally {
       startingRef.current = false;
     }
-  }, [stop]);
+  }, [stop, maxSeconds]);
 
   const reset = useCallback(() => {
     sessionRef.current++;

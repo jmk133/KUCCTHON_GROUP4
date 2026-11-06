@@ -359,3 +359,33 @@ h1, h2, h3, p { margin: 0; }
 .rare h3 { color: color-mix(in srgb, var(--c) 80%, #000); }
 .rare-where { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; }
 .archive .closing { background: linear-gradient(120deg, #fff1f3, #f3efff 50%, #eaf8f3); }
+
+
+/* ===== v5: 뇌 반응 페이지 ===== */
+.script { padding: 18px 20px; border-radius: 14px; background: var(--bg-soft); font-size: 17px; line-height: 1.9; font-weight: 600; }
+.brain-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+@media (max-width: 600px) { .brain-imgs { grid-template-columns: 1fr; } }
+.brain-imgs figure { margin: 0; background: #111; border-radius: 16px; overflow: hidden; text-align: center; }
+.brain-imgs img { width: 100%; display: block; }
+.brain-imgs figcaption { color: #ddd; font-size: 13px; padding: 8px; }
+.brain-h { font-size: 17px; margin: 28px 0 10px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.sw.me, .rb.me { background: var(--brand); }
+.sw.ref, .rb.ref { background: #c9c9c9; }
+.regions { display: grid; gap: 14px; }
+.region-row { display: grid; grid-template-columns: 160px 1fr 80px; gap: 12px; align-items: center; }
+@media (max-width: 600px) { .region-row { grid-template-columns: 1fr; gap: 6px; } }
+.region-name { display: flex; flex-direction: column; }
+.region-bars { display: grid; gap: 4px; }
+.rb-track { height: 10px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; }
+.rb { height: 100%; border-radius: 999px; transition: width 0.8s; }
+.region-diff { font-size: 13px; font-weight: 700; text-align: right; }
+.region-diff.up { color: var(--brand); }
+.region-diff.down { color: var(--muted); }
+.similar { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.similar li { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--bg-soft); font-weight: 600; }
+.similar li.top { background: var(--brand-soft); color: var(--brand); }
+.similar .rank { width: 26px; height: 26px; border-radius: 50%; background: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+@media (max-width: 900px) { .nav a { padding: 10px 12px; font-size: 14px; } }

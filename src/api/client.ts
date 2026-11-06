@@ -182,3 +182,59 @@ export async function addComment(postId: string, nickname: string, content: stri
   if (!res.ok) throw new Error(`댓글 등록 실패 (${res.status})`);
   return res.json();
 }
+
+
+/* ---------------- 목소리 → 뇌 반응 (/voice-brain, AI 서버) ----------------
+ * AI 서버 주소가 바뀌면 VOICE_BRAIN_URL만 고치세요.
+ * 계산이 수십 초 걸리므로 Vercel 프록시를 거치지 않고 브라우저에서 바로 호출합니다.
+ */
+export const VOICE_BRAIN_URL =
+  import.meta.env.VITE_VOICE_BRAIN_URL ?? "https://789e-203-251-135-23.ngrok-free.app";
+
+export interface BrainRegion {
+  key: string;
+  name: string;
+  desc: string;
+  user: number;
+  ref: number;
+}
+export interface VoiceBrainResult {
+  seconds: number;
+  elapsed: number;
+  similar: { style: string; r: number }[];
+  regions: BrainRegion[];
+  images?: { left?: string; right?: string };
+  dialect?: { label: string; name: string; prob: number };
+}
+
+export async function voiceBrain(wav: Blob): Promise<VoiceBrainResult> {
+  const form = new FormData();
+  form.append("audio", wav, "voice.wav");
+  const ctrl = new AbortController();
+  const timer = window.setTimeout(() => ctrl.abort(), 180_000); // 최대 3분 대기
+  try {
+    const res = await fetch(`${VOICE_BRAIN_URL}/voice-brain`, {
+      method: "POST",
+      headers: NGROK,
+      body: form,
+      signal: ctrl.signal,
+    });
+    if (!res.ok) {
+      let msg = `f-MRI 예측에 실패했어요 (${res.status})`;
+      try {
+        const j = await res.json();
+        if (typeof j.detail === "string") msg = j.detail;
+      } catch {
+        /* JSON이 아니면 기본 문구 */
+      }
+      throw new Error(msg);
+    }
+    return res.json();
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw new Error("응답이 너무 오래 걸려요. 잠시 후 다시 시도해 주세요.");
+    if (e instanceof TypeError) throw new Error("뇌 반응 서버에 연결하지 못했어요. 서버가 켜져 있는지 확인해 주세요.");
+    throw e;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
