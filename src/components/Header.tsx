@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 
 const LINKS = [
-  { href: "#analysis", label: "DNA 분석" },
-  { href: "#worldcup", label: "말투 찾기" },
-  { href: "#contest", label: "사투리 콘테스트" },
-  { href: "#archive", label: "말의 기록" },
+  { to: "/analysis", label: "DNA 분석" },
+  { to: "/worldcup", label: "사투리 월드컵" },
+  { to: "/contest", label: "사투리 콘테스트" },
+  { to: "/archive", label: "말의 기록" },
 ];
 
 export default function Header() {
@@ -12,14 +13,19 @@ export default function Header() {
   return (
     <header className="header">
       <div className="wrap">
-        <a href="#home" className="logo">
+        <Link to="/" className="logo" onClick={() => setOpen(false)}>
           사투리 <b>DNA</b>
-        </a>
+        </Link>
         <nav className={`nav ${open ? "open" : ""}`}>
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setOpen(false)}>
+            <NavLink
+              key={l.to}
+              to={l.to}
+              className={({ isActive }) => (isActive ? "active" : "")}
+              onClick={() => setOpen(false)}
+            >
               {l.label}
-            </a>
+            </NavLink>
           ))}
         </nav>
         <button className="menu-btn" aria-label="메뉴" onClick={() => setOpen((v) => !v)}>

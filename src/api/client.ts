@@ -151,3 +151,34 @@ export async function createPost(p: {
 }
 
 export const postAudioUrl = (id: string) => `${API_URL}/community/posts/${encodeURIComponent(id)}/audio`;
+
+
+/* ---------------- 댓글 ---------------- */
+
+export interface CommentItem {
+  nickname: string;
+  content: string;
+  createdAt: string;
+}
+
+export async function listComments(postId: string): Promise<CommentItem[]> {
+  const res = await fetch(`${API_URL}/community/posts/${encodeURIComponent(postId)}/comments`, { headers: NGROK });
+  if (!res.ok) throw new Error(`댓글을 불러오지 못했어요 (${res.status})`);
+  const data = await res.json();
+  const arr: Record<string, unknown>[] = Array.isArray(data) ? data : data.comments ?? data.items ?? data.data ?? [];
+  return arr.map((c) => ({
+    nickname: String(c.nickname ?? "익명"),
+    content: String(c.content ?? ""),
+    createdAt: String(c.created_at ?? c.createdAt ?? ""),
+  }));
+}
+
+export async function addComment(postId: string, nickname: string, content: string) {
+  const res = await fetch(`${API_URL}/community/posts/${encodeURIComponent(postId)}/comments`, {
+    method: "POST",
+    headers: { ...NGROK, "Content-Type": "application/json" },
+    body: JSON.stringify({ nickname, content }),
+  });
+  if (!res.ok) throw new Error(`댓글 등록 실패 (${res.status})`);
+  return res.json();
+}

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { REGIONS, regionById } from "../constants/regions";
 import { analyzeVoice } from "../api/client";
 import type { AnalyzeResult } from "../api/client";
 import { useRecorder, MAX_SECONDS } from "../hooks/useRecorder";
+import { CONTEST_THRESHOLD, saveEligibility } from "../lib/eligibility";
 
 const SENTENCES = ["오늘 저녁에 뭐 먹을까?", "나는 따뜻한 국밥이 먹고 싶어.", "밥 먹고 우리 같이 산책하러 갈래?"];
 
@@ -38,6 +40,7 @@ export default function Analysis() {
       setResult(r);
       setDonation("ask");
       setView(r.retry_recommended ? "retry" : "result");
+      if (!r.demo) saveEligibility({ region: r.top_region, score: r.confidence, source: "dna" });
     } catch {
       // 녹음 파일은 그대로 남겨 두어 재전송할 수 있게 합니다
       setError("음성 분석 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
@@ -55,12 +58,13 @@ export default function Analysis() {
 
   const top = result ? regionById(result.top_region) : null;
   const sorted = result ? [...REGIONS].sort((a, b) => (result.scores[b.id] ?? 0) - (result.scores[a.id] ?? 0)) : [];
+  const contestOk = !!result && !result.demo && result.confidence >= CONTEST_THRESHOLD;
 
   return (
-    <section id="analysis" className="section">
+    <section className="section page">
       <div className="wrap">
         <span className="eyebrow">사투리 DNA 분석</span>
-        <h2 className="h2">20초, 내 목소리에 담긴 고향 찾기</h2>
+        <h1 className="h2">20초, 내 목소리에 담긴 고향 찾기</h1>
 
         <div className="ana-grid">
           <div className="panel">
@@ -77,7 +81,6 @@ export default function Analysis() {
               ))}
             </div>
 
-            {/* ---------- 1. 녹음 화면 ---------- */}
             {view === "idle" && (
               <>
                 <p className="note" style={{ marginBottom: 10 }}>아래 세 문장을 편하게 읽어주세요</p>
@@ -108,7 +111,7 @@ export default function Analysis() {
                       <span className="rec-label">
                         {rec.isRecording ? "눌러서 녹음 끝내기" : rec.blob ? "다시 녹음하려면 누르세요" : "눌러서 녹음하기"}
                       </span>
-                      {rec.audioUrl && <audio controls src={rec.audioUrl} style={{ width: "100%" }} />}
+                      {rec.audioUrl && !rec.isRecording && <audio controls src={rec.audioUrl} style={{ width: "100%" }} />}
                     </>
                   )}
                   {rec.error && <p className="err">{rec.error}</p>}
@@ -130,7 +133,6 @@ export default function Analysis() {
               </>
             )}
 
-            {/* ---------- 2. 재녹음 권장 (최고 점수 50% 미만) ---------- */}
             {view === "retry" && (
               <div className="notice">
                 <p className="result-top" style={{ fontSize: 20 }}>분석 결과가 명확하지 않습니다.</p>
@@ -142,7 +144,6 @@ export default function Analysis() {
               </div>
             )}
 
-            {/* ---------- 3. 결과 화면 ---------- */}
             {view === "result" && result && top && (
               <div>
                 <p className="result-top">
@@ -159,10 +160,7 @@ export default function Analysis() {
                       <div key={r.id} className={`bar-row ${isTop ? "top" : ""}`}>
                         <span>{r.name}</span>
                         <div className="bar-track">
-                          <div
-                            className="bar-fill"
-                            style={{ width: `${pct}%`, background: r.color, opacity: isTop ? 1 : 0.45 }}
-                          />
+                          <div className="bar-fill" style={{ width: `${pct}%`, background: r.color, opacity: isTop ? 1 : 0.45 }} />
                         </div>
                         <span className="pct">{pct}%</span>
                       </div>
@@ -176,7 +174,16 @@ export default function Analysis() {
                     : "AI 분류 점수는 실제 출신 지역일 확률이나 사투리 실력을 뜻하지 않아요."}
                 </p>
 
-                {/* 최고 점수 90% 이상: 기증 안내 (자동 기증 금지) */}
+                {contestOk && (
+                  <div className="invite">
+                    <b>다른 사람들도 내 사투리를 인정할까요?</b>
+                    <p>{top.name} 말투 특징이 80% 이상 나왔어요. {top.name} 대표로 사투리 콘테스트에 참여할 수 있어요.</p>
+                    <Link to="/contest" className="btn btn-primary" style={{ marginTop: 12 }}>
+                      콘테스트 참여하기 →
+                    </Link>
+                  </div>
+                )}
+
                 {result.donation_eligible && (
                   <div className="donate">
                     {donation === "ask" && (
@@ -200,7 +207,7 @@ export default function Analysis() {
 
                 <div className="rec-actions" style={{ marginTop: 20, justifyContent: "flex-start" }}>
                   <button className="btn btn-primary" onClick={reRecord}>다시 녹음하기</button>
-                  <a href="#home" className="btn btn-ghost" onClick={reRecord}>첫 화면으로</a>
+                  <Link to="/" className="btn btn-ghost">첫 화면으로</Link>
                 </div>
               </div>
             )}
