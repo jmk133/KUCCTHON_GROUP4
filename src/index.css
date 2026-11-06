@@ -324,3 +324,38 @@ h1, h2, h3, p { margin: 0; }
 .rare { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
 .rare h3 { font-size: 20px; margin: 4px 0 8px; }
 .rare p { color: var(--ink-2); font-size: 14px; }
+
+
+/* ===== v4: 지도(울릉도·독도) / 말의 기록 컬러 ===== */
+.kmap { max-width: 380px; aspect-ratio: 356 / 440; }
+.kmap .isle-label { font-size: 9px; font-weight: 700; fill: #8a8a8a; }
+.kmap .dokdo { fill: var(--brand); stroke: #fff; stroke-width: 0.8; }
+.kmap .dokdo-label { fill: var(--brand); font-size: 10px; }
+
+.archive .arch-title { display: flex; align-items: center; gap: 10px; }
+.arch-icon {
+  width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--c); color: #fff; font-size: 16px;
+}
+.flip-face.front {
+  background: color-mix(in srgb, var(--c) 9%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c) 30%, #fff);
+  border-top: 6px solid var(--c);
+}
+.flip-face.back {
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000));
+  border: 0; color: #fff;
+}
+.flip-tag { padding: 4px 12px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; }
+.flip-face.front .flip-word { color: color-mix(in srgb, var(--c) 75%, #000); }
+.flip-hint { font-size: 12px; opacity: 0.7; }
+.flip-note { font-size: 12px; opacity: 0.9; max-width: 90%; }
+.flip:hover .flip-face.front { box-shadow: 0 10px 24px color-mix(in srgb, var(--c) 25%, transparent); }
+.rare {
+  background: color-mix(in srgb, var(--c) 8%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c) 25%, #fff);
+  border-left: 6px solid var(--c);
+}
+.rare h3 { color: color-mix(in srgb, var(--c) 80%, #000); }
+.rare-where { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; }
+.archive .closing { background: linear-gradient(120deg, #fff1f3, #f3efff 50%, #eaf8f3); }
