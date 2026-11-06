@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+      { "source": "/dna/:path*", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/dna/:path*" },
+      { "source": "/community/:path*", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/community/:path*" },
+      { "source": "/quiz/:path*", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/quiz/:path*" },
+      { "source": "/health", "destination": "https://gleeful-backlog-justifier.ngrok-free.dev/health" }
+    ]
+  }
